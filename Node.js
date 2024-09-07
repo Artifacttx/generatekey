@@ -3,7 +3,7 @@ const app = express();
 const port = 3000;
 const crypto = require('crypto');
 
-let userKeys = {}; // Store user keys by IP address for simplicity
+let userKeys = {}; // Store user keys by IP address or another unique identifier
 let validIPs = {}; // Store valid IPs after visiting lootdest.org
 
 app.use(express.json());
@@ -17,8 +17,11 @@ app.post('/generate-key', (req, res) => {
     }
 
     // Check if the user already has a valid key
-    if (userKeys[ip] && userKeys[ip].expiry > Date.now()) {
-        return res.status(403).send('Key already generated and not expired yet.');
+    if (userKeys[ip]) {
+        const { key, expiry } = userKeys[ip];
+        if (expiry > Date.now()) {
+            return res.status(403).send('Key already generated and not expired yet.');
+        }
     }
 
     // Generate a new key
