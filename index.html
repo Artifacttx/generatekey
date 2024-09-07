@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Key</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #B0B0B0; /* Shadow gray background */
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #FF4500; /* Sunset orange button */
+            color: #FFFFFF;
+            border: none;
+            border-radius: 5px;
+        }
+        #key, #expiration {
+            margin-top: 20px;
+            color: #FF4500; /* Sunset orange text */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button onclick="generateKey()">Generate Key</button>
+        <div id="key"></div>
+        <div id="expiration"></div>
+    </div>
+
+    <script>
+        function generateKey() {
+            // Generate a random key and add prefix
+            const prefix = 'YumeHub';
+            const randomKey = Math.random().toString(36).substring(2, 15);
+            const key = `${prefix}-${randomKey}`;
+            
+            // Calculate expiration time (24 hours later)
+            const now = new Date();
+            const expiration = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours later
+
+            // Display key and expiration
+            document.getElementById('key').textContent = 'Key: ' + key;
+            document.getElementById('expiration').textContent = 'Expires on: ' + expiration.toLocaleString();
+        }
+    </script>
+</body>
+</html>
