@@ -45,23 +45,37 @@
     </div>
 
     <script>
-        function generateKey() {
-            // Generate a random key and add prefix
-            const prefix = 'YumeHub';
-            const randomKey = Math.random().toString(36).substring(2, 15);
-            const key = `${prefix}-${randomKey}`;
-            
-            // Calculate expiration time (24 hours later)
-            const now = new Date();
-            const expiration = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours later
+        async function generateKey() {
+            try {
+                // Call the server to generate a key
+                const response = await fetch('http://localhost:3000/generate-key', {
+                    method: 'POST'
+                });
 
-            // Display key and expiration
-            document.getElementById('key').textContent = 'Key: ' + key;
-            document.getElementById('expiration').textContent = 'Expires on: ' + expiration.toLocaleString();
+                if (response.status === 403) {
+                    alert(await response.text());
+                    return;
+                }
 
-            // Disable the button after it's clicked
-            document.getElementById('generateButton').disabled = true;
+                const data = await response.json();
+                document.getElementById('key').textContent = 'Key: ' + data.key;
+                document.getElementById('expiration').textContent = 'Expires on: ' + data.expiresOn;
+
+                // Disable the button after generating key
+                document.getElementById('generateButton').disabled = true;
+            } catch (error) {
+                console.error('Error generating key:', error);
+            }
         }
+
+        // Simulate visiting the required site
+        async function visitSite() {
+            await fetch('http://localhost:3000/visit-site', {
+                method: 'POST'
+            });
+        }
+
+        visitSite(); // Call this on page load or after user performs an action
     </script>
 </body>
 </html>
