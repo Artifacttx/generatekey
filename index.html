@@ -27,6 +27,10 @@
             border: none;
             border-radius: 5px;
         }
+        button:disabled {
+            background-color: #FF7F50; /* Lighter sunset orange for disabled state */
+            cursor: not-allowed;
+        }
         #key, #expiration {
             margin-top: 20px;
             color: #FF4500; /* Sunset orange text */
@@ -35,7 +39,7 @@
 </head>
 <body>
     <div class="container">
-        <button onclick="generateKey()">Generate Key</button>
+        <button id="generateButton" onclick="generateKey()">Generate Key</button>
         <div id="key"></div>
         <div id="expiration"></div>
     </div>
@@ -54,6 +58,9 @@
             // Display key and expiration
             document.getElementById('key').textContent = 'Key: ' + key;
             document.getElementById('expiration').textContent = 'Expires on: ' + expiration.toLocaleString();
+
+            // Disable the button after it's clicked
+            document.getElementById('generateButton').disabled = true;
         }
     </script>
 </body>
