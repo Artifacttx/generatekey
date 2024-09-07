@@ -5,78 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generate Key</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #B0B0B0; /* Shadow gray background */
-            margin: 0;
-        }
-        .container {
-            text-align: center;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #FF4500; /* Sunset orange button */
-            color: #FFFFFF;
-            border: none;
-            border-radius: 5px;
-        }
-        button:disabled {
-            background-color: #FF7F50; /* Lighter sunset orange for disabled state */
-            cursor: not-allowed;
-        }
-        #key, #expiration {
-            margin-top: 20px;
-            color: #FF4500; /* Sunset orange text */
-        }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        button { padding: 10px 20px; font-size: 16px; }
+        #key { margin-top: 20px; font-size: 18px; }
+        #expiry { margin-top: 10px; font-size: 16px; }
+        #status { margin-top: 10px; color: red; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <button id="generateButton" onclick="generateKey()">Generate Key</button>
-        <div id="key"></div>
-        <div id="expiration"></div>
-    </div>
+    <h1>Generate Key</h1>
+    <button id="generateKeyBtn">Generate Key</button>
+    <div id="key"></div>
+    <div id="expiry"></div>
+    <div id="status"></div>
 
     <script>
-        async function generateKey() {
-            try {
-                // Call the server to generate a key
-                const response = await fetch('http://localhost:3000/generate-key', {
-                    method: 'POST'
-                });
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check key status on page load
+            checkKeyStatus();
+        });
 
-                if (response.status === 403) {
-                    alert(await response.text());
-                    return;
+        document.getElementById('generateKeyBtn').addEventListener('click', generateKey);
+
+        function generateKey() {
+            if (localStorage.getItem('keyGenerated')) {
+                document.getElementById('status').textContent = 'You have already generated a key.';
+                return;
+            }
+
+            // Generate a unique key with prefix
+            const key = 'YumeHub-' + generateUniqueKey();
+            const expiryTime = new Date().getTime() + 24 * 60 * 60 * 1000; // 24 hours from now
+
+            // Store the key and expiry in local storage
+            localStorage.setItem('key', key);
+            localStorage.setItem('expiry', expiryTime);
+            localStorage.setItem('keyGenerated', 'true'); // Mark that a key has been generated
+
+            // Display the key
+            document.getElementById('key').textContent = `Your key: ${key}`;
+            document.getElementById('status').textContent = '';
+
+            // Disable the button after key generation
+            document.getElementById('generateKeyBtn').disabled = true;
+
+            // Update the expiration time immediately
+            updateExpiryTime();
+        }
+
+        function generateUniqueKey() {
+            // Simple unique key generator for demo purposes
+            return Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        function updateExpiryTime() {
+            const storedExpiry = localStorage.getItem('expiry');
+            if (storedExpiry) {
+                const now = new Date().getTime();
+                const timeRemaining = storedExpiry - now;
+
+                if (timeRemaining > 0) {
+                    // Calculate remaining time
+                    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+
+                    document.getElementById('expiry').textContent = `Key expires in: ${hours}h ${minutes}m ${seconds}s`;
+
+                    // Update every second
+                    setTimeout(updateExpiryTime, 1000);
+                } else {
+                    // Key has expired
+                    document.getElementById('expiry').textContent = 'Your key has expired. Please generate a new one.';
+                    localStorage.removeItem('key');
+                    localStorage.removeItem('expiry');
+                    localStorage.removeItem('keyGenerated');
+                    document.getElementById('generateKeyBtn').disabled = false;
                 }
-
-                const data = await response.json();
-                document.getElementById('key').textContent = 'Key: ' + data.key;
-                document.getElementById('expiration').textContent = 'Expires on: ' + data.expiresOn;
-
-                // Disable the button after generating key
-                document.getElementById('generateButton').disabled = true;
-            } catch (error) {
-                console.error('Error generating key:', error);
             }
         }
 
-        // Simulate visiting the required site
-        async function visitSite() {
-            await fetch('http://localhost:3000/visit-site', {
-                method: 'POST'
-            });
-        }
+        function checkKeyStatus() {
+            const storedKey = localStorage.getItem('key');
+            const storedExpiry = localStorage.getItem('expiry');
+            const keyGenerated = localStorage.getItem('keyGenerated');
 
-        // Call this on page load or after user performs an action
-        visitSite(); 
+            if (storedKey && storedExpiry) {
+                const now = new Date().getTime();
+                if (now > storedExpiry) {
+                    // Key has expired
+                    localStorage.removeItem('key');
+                    localStorage.removeItem('expiry');
+                    localStorage.removeItem('keyGenerated');
+                    document.getElementById('status').textContent = 'Your key has expired. Please generate a new one.';
+                    document.getElementById('generateKeyBtn').disabled = false;
+                } else {
+                    // Key is still valid
+                    document.getElementById('key').textContent = `Your key: ${storedKey}`;
+                    updateExpiryTime();
+                    document.getElementById('status').textContent = 'Your key is still valid.';
+                    document.getElementById('generateKeyBtn').disabled = true;
+                }
+            } else if (keyGenerated) {
+                document.getElementById('status').textContent = 'You have already generated a key.';
+                document.getElementById('generateKeyBtn').disabled = true;
+            }
+        }
     </script>
 </body>
 </html>
