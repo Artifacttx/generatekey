@@ -21,13 +21,21 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Simulate obtaining the HWID (replace this with real HWID generation)
+            const hwid = generateHWID();
+            // Append HWID to the current URL
+            appendHWIDToURL(hwid);
+
             // Check key status on page load
-            checkKeyStatus();
+            checkKeyStatus(hwid);
         });
 
-        document.getElementById('generateKeyBtn').addEventListener('click', generateKey);
+        document.getElementById('generateKeyBtn').addEventListener('click', function() {
+            const hwid = generateHWID(); // Generate HWID again on key generation
+            generateKey(hwid);
+        });
 
-        function generateKey() {
+        function generateKey(hwid) {
             if (localStorage.getItem('keyGenerated')) {
                 document.getElementById('status').textContent = 'You have already generated a key.';
                 return;
@@ -37,9 +45,10 @@
             const key = 'YumeHub-' + generateUniqueKey();
             const expiryTime = new Date().getTime() + 24 * 60 * 60 * 1000; // 24 hours from now
 
-            // Store the key and expiry in local storage
+            // Store the key, HWID, and expiry in local storage
             localStorage.setItem('key', key);
             localStorage.setItem('expiry', expiryTime);
+            localStorage.setItem('hwid', hwid);
             localStorage.setItem('keyGenerated', 'true'); // Mark that a key has been generated
 
             // Display the key
@@ -77,30 +86,27 @@
                 } else {
                     // Key has expired
                     document.getElementById('expiry').textContent = 'Your key has expired. Please generate a new one.';
-                    localStorage.removeItem('key');
-                    localStorage.removeItem('expiry');
-                    localStorage.removeItem('keyGenerated');
+                    clearLocalStorage();
                     document.getElementById('generateKeyBtn').disabled = false;
                 }
             }
         }
 
-        function checkKeyStatus() {
+        function checkKeyStatus(currentHWID) {
             const storedKey = localStorage.getItem('key');
             const storedExpiry = localStorage.getItem('expiry');
+            const storedHWID = localStorage.getItem('hwid');
             const keyGenerated = localStorage.getItem('keyGenerated');
 
-            if (storedKey && storedExpiry) {
+            if (storedKey && storedExpiry && storedHWID) {
                 const now = new Date().getTime();
-                if (now > storedExpiry) {
-                    // Key has expired
-                    localStorage.removeItem('key');
-                    localStorage.removeItem('expiry');
-                    localStorage.removeItem('keyGenerated');
-                    document.getElementById('status').textContent = 'Your key has expired. Please generate a new one.';
+                if (now > storedExpiry || currentHWID !== storedHWID) {
+                    // Key has expired or HWID does not match
+                    clearLocalStorage();
+                    document.getElementById('status').textContent = 'Your key has expired or HWID mismatch. Please generate a new one.';
                     document.getElementById('generateKeyBtn').disabled = false;
                 } else {
-                    // Key is still valid
+                    // Key is still valid and HWID matches
                     document.getElementById('key').textContent = `Your key: ${storedKey}`;
                     updateExpiryTime();
                     document.getElementById('status').textContent = 'Your key is still valid.';
@@ -110,6 +116,26 @@
                 document.getElementById('status').textContent = 'You have already generated a key.';
                 document.getElementById('generateKeyBtn').disabled = true;
             }
+        }
+
+        function generateHWID() {
+            // This is a placeholder function. Replace with actual HWID generation.
+            return Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        function appendHWIDToURL(hwid) {
+            const currentUrl = window.location.href;
+            if (!currentUrl.includes('hwid=')) {
+                const newUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'hwid=' + hwid;
+                window.history.replaceState(null, '', newUrl);
+            }
+        }
+
+        function clearLocalStorage() {
+            localStorage.removeItem('key');
+            localStorage.removeItem('expiry');
+            localStorage.removeItem('hwid');
+            localStorage.removeItem('keyGenerated');
         }
     </script>
 </body>
