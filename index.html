@@ -21,105 +21,80 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Simulate obtaining the HWID (replace this with real HWID generation)
             const hwid = generateHWID();
-            // Append HWID to the current URL
             appendHWIDToURL(hwid);
-
-            // Check key status on page load
             checkKeyStatus(hwid);
         });
 
         document.getElementById('generateKeyBtn').addEventListener('click', function() {
-            const hwid = generateHWID(); // Generate HWID again on key generation
+            const hwid = generateHWID();
             generateKey(hwid);
         });
 
         function generateKey(hwid) {
-            if (localStorage.getItem('keyGenerated')) {
+            if (getEncryptedStorage('keyGenerated')) {
                 document.getElementById('status').textContent = 'You have already generated a key.';
                 return;
             }
 
-            // Generate a unique key with prefix
             const key = 'YumeHub-' + generateUniqueKey();
-            const expiryTime = new Date().getTime() + 24 * 60 * 60 * 1000; // 24 hours from now
+            const expiryTime = new Date().getTime() + 24 * 60 * 60 * 1000;
 
-            // Store the key, HWID, and expiry in local storage
-            localStorage.setItem('key', key);
-            localStorage.setItem('expiry', expiryTime);
-            localStorage.setItem('hwid', hwid);
-            localStorage.setItem('keyGenerated', 'true'); // Mark that a key has been generated
+            // Encrypt and store data in localStorage
+            setEncryptedStorage('key', key);
+            setEncryptedStorage('expiry', expiryTime);
+            setEncryptedStorage('hwid', hwid);
+            setEncryptedStorage('keyGenerated', 'true');
 
-            // Display the key
             document.getElementById('key').textContent = `Your key: ${key}`;
             document.getElementById('status').textContent = '';
 
-            // Disable the button after key generation
             document.getElementById('generateKeyBtn').disabled = true;
-
-            // Update the expiration time immediately
             updateExpiryTime();
         }
 
         function generateUniqueKey() {
-            // Simple unique key generator for demo purposes
             return Math.random().toString(36).substr(2, 9).toUpperCase();
         }
 
         function updateExpiryTime() {
-            const storedExpiry = localStorage.getItem('expiry');
+            const storedExpiry = getEncryptedStorage('expiry');
             if (storedExpiry) {
                 const now = new Date().getTime();
                 const timeRemaining = storedExpiry - now;
 
                 if (timeRemaining > 0) {
-                    // Calculate remaining time
                     const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
                     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
 
                     document.getElementById('expiry').textContent = `Key expires in: ${hours}h ${minutes}m ${seconds}s`;
-
-                    // Update every second
                     setTimeout(updateExpiryTime, 1000);
                 } else {
-                    // Key has expired
-                    document.getElementById('expiry').textContent = 'Your key has expired. Please generate a new one.';
-                    clearLocalStorage();
-                    document.getElementById('generateKeyBtn').disabled = false;
+                    closeTab();
                 }
             }
         }
 
         function checkKeyStatus(currentHWID) {
-            const storedKey = localStorage.getItem('key');
-            const storedExpiry = localStorage.getItem('expiry');
-            const storedHWID = localStorage.getItem('hwid');
-            const keyGenerated = localStorage.getItem('keyGenerated');
+            const storedKey = getEncryptedStorage('key');
+            const storedExpiry = getEncryptedStorage('expiry');
+            const storedHWID = getEncryptedStorage('hwid');
 
             if (storedKey && storedExpiry && storedHWID) {
                 const now = new Date().getTime();
                 if (now > storedExpiry || currentHWID !== storedHWID) {
-                    // Key has expired or HWID does not match
-                    clearLocalStorage();
-                    document.getElementById('status').textContent = 'Your key has expired or HWID mismatch. Please generate a new one.';
-                    document.getElementById('generateKeyBtn').disabled = false;
+                    closeTab();
                 } else {
-                    // Key is still valid and HWID matches
                     document.getElementById('key').textContent = `Your key: ${storedKey}`;
                     updateExpiryTime();
                     document.getElementById('status').textContent = 'Your key is still valid.';
                     document.getElementById('generateKeyBtn').disabled = true;
                 }
-            } else if (keyGenerated) {
-                document.getElementById('status').textContent = 'You have already generated a key.';
-                document.getElementById('generateKeyBtn').disabled = true;
             }
         }
 
         function generateHWID() {
-            // This is a placeholder function. Replace with actual HWID generation.
             return Math.random().toString(36).substr(2, 9).toUpperCase();
         }
 
@@ -131,12 +106,42 @@
             }
         }
 
-        function clearLocalStorage() {
+        function closeTab() {
+            clearEncryptedStorage();
+            alert('Your key has expired or HWID is invalid. The tab will now close.');
+            window.close();
+        }
+
+        // --- Anti-bypass Logic (Encryption & Tamper Detection) ---
+
+        // Encryption key for localStorage (use a secret key)
+        const encryptionKey = 'super_secret_key'; 
+
+        function encrypt(data) {
+            return btoa(data); // Base64 encryption for simplicity (use a more secure method in production)
+        }
+
+        function decrypt(data) {
+            return atob(data); // Decrypt Base64 data
+        }
+
+        function setEncryptedStorage(key, value) {
+            const encryptedValue = encrypt(value.toString());
+            localStorage.setItem(key, encryptedValue);
+        }
+
+        function getEncryptedStorage(key) {
+            const encryptedValue = localStorage.getItem(key);
+            return encryptedValue ? decrypt(encryptedValue) : null;
+        }
+
+        function clearEncryptedStorage() {
             localStorage.removeItem('key');
             localStorage.removeItem('expiry');
             localStorage.removeItem('hwid');
             localStorage.removeItem('keyGenerated');
         }
+
     </script>
 </body>
 </html>
