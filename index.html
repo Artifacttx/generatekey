@@ -5,11 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generate Key</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-        button { padding: 10px 20px; font-size: 16px; }
-        #key { margin-top: 20px; font-size: 18px; }
-        #expiry { margin-top: 10px; font-size: 16px; }
-        #status { margin-top: 10px; color: red; }
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            padding: 50px; 
+            color: #FF4500; /* Sunset orange */
+            background-color: #FFF8F0; /* Light background for contrast */
+        }
+        button { 
+            padding: 10px 20px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 25px; /* Rounded corners */
+            background-color: #FF4500; /* Sunset orange */
+            color: white; /* White text color */
+            cursor: pointer; 
+            transition: background-color 0.3s; /* Smooth transition */
+        }
+        button:hover {
+            background-color: #FF6347; /* Slightly lighter orange on hover */
+        }
+        #key { 
+            margin-top: 20px; 
+            font-size: 18px; 
+        }
+        #expiry { 
+            margin-top: 10px; 
+            font-size: 16px; 
+        }
+        #status { 
+            margin-top: 10px; 
+            color: red; 
+        }
     </style>
 </head>
 <body>
@@ -108,30 +135,28 @@
 
         function redirectToGateway() {
             clearEncryptedStorage();
-            // Redirect to the specified gateway
             window.location.href = 'https://artifacttx.github.io/YumeHubGateway/';
-            // Attempt to close the tab after redirection
             setTimeout(function() {
                 closeTab();
             }, 500);
         }
 
         function closeTab() {
-            window.open('', '_self').close(); // Attempt to close the tab in mobile
+            window.open('', '_self').close(); 
             if (window.history.length > 0) {
-                window.history.go(-1); // Attempt to go back (on some browsers, it will close the tab)
+                window.history.go(-1); 
             }
         }
 
         // --- Anti-bypass Logic (Encryption & Tamper Detection) ---
-        const encryptionKey = 'super_secret_key'; // Use a more secure key in production
+        const encryptionKey = 'super_secret_key';
 
         function encrypt(data) {
-            return btoa(data); // Base64 encryption for simplicity (use a more secure method in production)
+            return btoa(data);
         }
 
         function decrypt(data) {
-            return atob(data); // Decrypt Base64 data
+            return atob(data);
         }
 
         function setEncryptedStorage(key, value) {
