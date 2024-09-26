@@ -21,9 +21,13 @@
             window.location.href = 'https://artifacttx.github.io/YumeHubGateway/';
         }
 
-        window.onbeforeunload = function () {
+        // Detect when the user tries to go back
+        window.addEventListener('popstate', function(event) {
             window.location.href = 'https://artifacttx.github.io/YumeHubGateway/';
-        }
+        });
+
+        // Push current state to history to make sure the user can't navigate back to bypass
+        history.pushState(null, null, window.location.href);
     </script>
 </body>
 </html>
