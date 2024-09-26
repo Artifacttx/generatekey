@@ -71,7 +71,8 @@
                     document.getElementById('expiry').textContent = `Key expires in: ${hours}h ${minutes}m ${seconds}s`;
                     setTimeout(updateExpiryTime, 1000);
                 } else {
-                    closeTab();
+                    // Redirect to the "key expired" page
+                    redirectToExpiredPage();
                 }
             }
         }
@@ -84,7 +85,8 @@
             if (storedKey && storedExpiry && storedHWID) {
                 const now = new Date().getTime();
                 if (now > storedExpiry || currentHWID !== storedHWID) {
-                    closeTab();
+                    // Redirect to the "key expired" page
+                    redirectToExpiredPage();
                 } else {
                     document.getElementById('key').textContent = `Your key: ${storedKey}`;
                     updateExpiryTime();
@@ -106,15 +108,20 @@
             }
         }
 
-        function closeTab() {
+        function redirectToExpiredPage() {
             clearEncryptedStorage();
-            alert('Your key has expired or HWID is invalid. The tab will now close.');
-            window.close();
+            // Redirect to the "key expired" page
+            window.location.href = 'expired.html'; // The page that informs users about key expiration
+        }
+
+        function clearEncryptedStorage() {
+            localStorage.removeItem('key');
+            localStorage.removeItem('expiry');
+            localStorage.removeItem('hwid');
+            localStorage.removeItem('keyGenerated');
         }
 
         // --- Anti-bypass Logic (Encryption & Tamper Detection) ---
-
-        // Encryption key for localStorage (use a secret key)
         const encryptionKey = 'super_secret_key'; 
 
         function encrypt(data) {
@@ -134,14 +141,6 @@
             const encryptedValue = localStorage.getItem(key);
             return encryptedValue ? decrypt(encryptedValue) : null;
         }
-
-        function clearEncryptedStorage() {
-            localStorage.removeItem('key');
-            localStorage.removeItem('expiry');
-            localStorage.removeItem('hwid');
-            localStorage.removeItem('keyGenerated');
-        }
-
     </script>
 </body>
 </html>
