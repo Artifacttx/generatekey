@@ -8,10 +8,22 @@
         body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
         h1 { color: red; }
         p { font-size: 18px; }
+        button { padding: 10px 20px; font-size: 16px; }
     </style>
 </head>
 <body>
     <h1>Your key has expired!</h1>
-    <p>Please go back and generate a new key to continue using the service.</p>
+    <p>Please get a new key to continue using the service.</p>
+    <button onclick="goToNewKey()">Get a New Key</button>
+
+    <script>
+        function goToNewKey() {
+            window.location.href = 'https://artifacttx.github.io/YumeHubGateway/';
+        }
+
+        window.onbeforeunload = function () {
+            window.location.href = 'https://artifacttx.github.io/YumeHubGateway/';
+        }
+    </script>
 </body>
 </html>
