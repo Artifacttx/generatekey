@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generate Key</title>
+    <title>Generate Key (Test Version)</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
         button { padding: 10px 20px; font-size: 16px; }
@@ -13,7 +13,7 @@
     </style>
 </head>
 <body>
-    <h1>Generate Key</h1>
+    <h1>Generate Key (Test Version)</h1>
     <button id="generateKeyBtn">Generate Key</button>
     <div id="key"></div>
     <div id="expiry"></div>
@@ -38,7 +38,7 @@
             }
 
             const key = 'YumeHub-' + generateUniqueKey();
-            const expiryTime = new Date().getTime() + 24 * 60 * 60 * 1000;
+            const expiryTime = new Date().getTime() + 10 * 1000; // Set expiry time to 10 seconds for testing
 
             // Encrypt and store data in localStorage
             setEncryptedStorage('key', key);
@@ -64,11 +64,8 @@
                 const timeRemaining = storedExpiry - now;
 
                 if (timeRemaining > 0) {
-                    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
-                    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-
-                    document.getElementById('expiry').textContent = `Key expires in: ${hours}h ${minutes}m ${seconds}s`;
+                    const seconds = Math.floor(timeRemaining / 1000);
+                    document.getElementById('expiry').textContent = `Key expires in: ${seconds}s`;
                     setTimeout(updateExpiryTime, 1000);
                 } else {
                     // Redirect to the "key expired" page
