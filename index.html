@@ -20,15 +20,22 @@
     <div id="status"></div>
 
     <script>
+        const gatewayURL = 'https://artifacttx.github.io/YumeHubGateway/';
+
         document.addEventListener('DOMContentLoaded', function() {
             const hwid = generateHWID();
             appendHWIDToURL(hwid);
             checkKeyStatus(hwid);
+
+            // Redirect to the gateway URL when the page is refreshed
+            window.addEventListener('beforeunload', function() {
+                window.location.href = gatewayURL;
+            });
         });
 
         document.getElementById('generateKeyBtn').addEventListener('click', function() {
-            const hwid = generateHWID();
-            generateKey(hwid);
+            // Redirect to the external key generation page when the button is clicked
+            window.location.href = gatewayURL;
         });
 
         function generateKey(hwid) {
@@ -38,7 +45,7 @@
             }
 
             const key = 'YumeHub-' + generateUniqueKey();
-            const expiryTime = new Date().getTime() + 10 * 1000; // Set expiry time to 10 seconds for testing
+            const expiryTime = new Date().getTime() + 10 * 1000; // 10 seconds for testing
 
             // Encrypt and store data in localStorage
             setEncryptedStorage('key', key);
@@ -107,8 +114,8 @@
 
         function redirectToExpiredPage() {
             clearEncryptedStorage();
-            // Redirect to the "key expired" page
-            window.location.href = 'expired.html'; // Redirect to the key expired page
+            // Redirect to the external key generation gateway page when expired
+            window.location.href = gatewayURL;
         }
 
         function clearEncryptedStorage() {
