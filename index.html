@@ -21,6 +21,7 @@
             color: white; /* White text color */
             cursor: pointer; 
             transition: background-color 0.3s; /* Smooth transition */
+            margin: 5px; /* Add margin between buttons */
         }
         button:hover {
             background-color: #FF6347; /* Slightly lighter orange on hover */
@@ -42,6 +43,7 @@
 <body>
     <h1>Generate Key</h1>
     <button id="generateKeyBtn">Generate Key</button>
+    <button id="copyKeyBtn" style="display:none;">Copy Key</button> <!-- Hidden by default -->
     <div id="key"></div>
     <div id="expiry"></div>
     <div id="status"></div>
@@ -56,6 +58,10 @@
         document.getElementById('generateKeyBtn').addEventListener('click', function() {
             const hwid = generateHWID();
             generateKey(hwid);
+        });
+
+        document.getElementById('copyKeyBtn').addEventListener('click', function() {
+            copyKeyToClipboard();
         });
 
         function generateKey(hwid) {
@@ -75,13 +81,26 @@
 
             document.getElementById('key').textContent = `Your key: ${key}`;
             document.getElementById('status').textContent = '';
-
+            
+            // Show the copy button and enable it
+            document.getElementById('copyKeyBtn').style.display = 'inline-block';
             document.getElementById('generateKeyBtn').disabled = true;
             updateExpiryTime();
         }
 
         function generateUniqueKey() {
             return Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        function copyKeyToClipboard() {
+            const key = document.getElementById('key').textContent.replace('Your key: ', '');
+            if (key) {
+                navigator.clipboard.writeText(key).then(function() {
+                    document.getElementById('status').textContent = 'Key copied to clipboard!';
+                }).catch(function(error) {
+                    document.getElementById('status').textContent = 'Failed to copy key.';
+                });
+            }
         }
 
         function updateExpiryTime() {
@@ -117,6 +136,8 @@
                     updateExpiryTime();
                     document.getElementById('status').textContent = 'Your key is still valid.';
                     document.getElementById('generateKeyBtn').disabled = true;
+                    // Show the copy button if a key already exists
+                    document.getElementById('copyKeyBtn').style.display = 'inline-block';
                 }
             }
         }
