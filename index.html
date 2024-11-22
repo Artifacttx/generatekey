@@ -49,60 +49,47 @@
     <div id="status"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const hwid = generateHWID();
-            appendHWIDToURL(hwid);
-            checkKeyStatus(hwid);
-        });
-
-        document.getElementById('generateKeyBtn').addEventListener('click', function() {
-            const hwid = generateHWID();
-            generateKey(hwid);
-        });
-
-        document.getElementById('copyKeyBtn').addEventListener('click', function() {
-            copyKeyToClipboard();
-        });
-
-        function generateKey(hwid) {
-            if (getEncryptedStorage('keyGenerated')) {
-                document.getElementById('status').textContent = 'You have already generated a key.';
-                return;
-            }
-
-            const key = 'YumeHub-' + generateUniqueKey();
-            const expiryTime = new Date().getTime() + 24 * 60 * 60 * 1000;
-
-            // Encrypt and store data in localStorage
-            setEncryptedStorage('key', key);
-            setEncryptedStorage('expiry', expiryTime);
-            setEncryptedStorage('hwid', hwid);
-            setEncryptedStorage('keyGenerated', 'true');
-
-            document.getElementById('key').textContent = `Your key: ${key}`;
-            document.getElementById('status').textContent = '';
-            
-            // Show the copy button and enable it
-            document.getElementById('copyKeyBtn').style.display = 'inline-block';
-            document.getElementById('generateKeyBtn').disabled = true;
-            updateExpiryTime();
-        }
-
-        function generateUniqueKey() {
+        // Function to generate a random HWID (Hardware ID)
+        function generateHWID() {
             return Math.random().toString(36).substr(2, 9).toUpperCase();
         }
 
-        function copyKeyToClipboard() {
-            const key = document.getElementById('key').textContent.replace('Your key: ', '');
-            if (key) {
-                navigator.clipboard.writeText(key).then(function() {
-                    document.getElementById('status').textContent = 'Key copied to clipboard!';
-                }).catch(function(error) {
-                    document.getElementById('status').textContent = 'Failed to copy key.';
-                });
-            }
+        // Encrypt data using Base64 encoding
+        function encrypt(data) {
+            return btoa(data);
         }
 
+        // Decrypt data using Base64 decoding
+        function decrypt(data) {
+            return atob(data);
+        }
+
+        // Save encrypted data to localStorage
+        function setEncryptedStorage(key, value) {
+            const encryptedValue = encrypt(value.toString());
+            localStorage.setItem(key, encryptedValue);
+        }
+
+        // Retrieve decrypted data from localStorage
+        function getEncryptedStorage(key) {
+            const encryptedValue = localStorage.getItem(key);
+            return encryptedValue ? decrypt(encryptedValue) : null;
+        }
+
+        // Clear encrypted data from localStorage
+        function clearEncryptedStorage() {
+            localStorage.removeItem('key');
+            localStorage.removeItem('expiry');
+            localStorage.removeItem('hwid');
+            localStorage.removeItem('keyGenerated');
+        }
+
+        // Function to generate a unique key with "YumeHub-" prefix
+        function generateUniqueKey() {
+            return 'YumeHub-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        // Update the expiry time for the generated key
         function updateExpiryTime() {
             const storedExpiry = getEncryptedStorage('expiry');
             if (storedExpiry) {
@@ -122,6 +109,24 @@
             }
         }
 
+        // Redirect to the gateway page if the key expires
+        function redirectToGateway() {
+            clearEncryptedStorage();
+            window.location.href = 'https://artifacttx.github.io/YumeHubGateway/';
+            setTimeout(function() {
+                closeTab();
+            }, 500);
+        }
+
+        // Close the tab after redirection
+        function closeTab() {
+            window.open('', '_self').close(); 
+            if (window.history.length > 0) {
+                window.history.go(-1); 
+            }
+        }
+
+        // Check if the key has been generated previously
         function checkKeyStatus(currentHWID) {
             const storedKey = getEncryptedStorage('key');
             const storedExpiry = getEncryptedStorage('expiry');
@@ -142,10 +147,51 @@
             }
         }
 
-        function generateHWID() {
-            return Math.random().toString(36).substr(2, 9).toUpperCase();
+        // Function to handle key generation
+        function generateKey(hwid) {
+            if (getEncryptedStorage('keyGenerated')) {
+                document.getElementById('status').textContent = 'You have already generated a key.';
+                return;
+            }
+
+            const key = generateUniqueKey();
+            const expiryTime = new Date().getTime() + 24 * 60 * 60 * 1000; // 24 hours expiry time
+
+            // Encrypt and store data in localStorage
+            setEncryptedStorage('key', key);
+            setEncryptedStorage('expiry', expiryTime);
+            setEncryptedStorage('hwid', hwid);
+            setEncryptedStorage('keyGenerated', 'true');
+
+            document.getElementById('key').textContent = `Your key: ${key}`;
+            document.getElementById('status').textContent = '';
+            
+            // Show the copy button and enable it
+            document.getElementById('copyKeyBtn').style.display = 'inline-block';
+            document.getElementById('generateKeyBtn').disabled = true;
+            updateExpiryTime();
         }
 
+        // Copy the key to the clipboard
+        function copyKeyToClipboard() {
+            const key = document.getElementById('key').textContent.replace('Your key: ', '');
+            if (key) {
+                navigator.clipboard.writeText(key).then(function() {
+                    document.getElementById('status').textContent = 'Key copied to clipboard!';
+                }).catch(function(error) {
+                    document.getElementById('status').textContent = 'Failed to copy key.';
+                });
+            }
+        }
+
+        // Event listener when the DOM content is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const hwid = generateHWID();
+            appendHWIDToURL(hwid);
+            checkKeyStatus(hwid);
+        });
+
+        // Append HWID to the URL to prevent key sharing
         function appendHWIDToURL(hwid) {
             const currentUrl = window.location.href;
             if (!currentUrl.includes('hwid=')) {
@@ -154,48 +200,16 @@
             }
         }
 
-        function redirectToGateway() {
-            clearEncryptedStorage();
-            window.location.href = 'https://artifacttx.github.io/YumeHubGateway/';
-            setTimeout(function() {
-                closeTab();
-            }, 500);
-        }
+        // Handle generate key button click
+        document.getElementById('generateKeyBtn').addEventListener('click', function() {
+            const hwid = generateHWID();
+            generateKey(hwid);
+        });
 
-        function closeTab() {
-            window.open('', '_self').close(); 
-            if (window.history.length > 0) {
-                window.history.go(-1); 
-            }
-        }
-
-        // --- Anti-bypass Logic (Encryption & Tamper Detection) ---
-        const encryptionKey = 'super_secret_key';
-
-        function encrypt(data) {
-            return btoa(data);
-        }
-
-        function decrypt(data) {
-            return atob(data);
-        }
-
-        function setEncryptedStorage(key, value) {
-            const encryptedValue = encrypt(value.toString());
-            localStorage.setItem(key, encryptedValue);
-        }
-
-        function getEncryptedStorage(key) {
-            const encryptedValue = localStorage.getItem(key);
-            return encryptedValue ? decrypt(encryptedValue) : null;
-        }
-
-        function clearEncryptedStorage() {
-            localStorage.removeItem('key');
-            localStorage.removeItem('expiry');
-            localStorage.removeItem('hwid');
-            localStorage.removeItem('keyGenerated');
-        }
+        // Handle copy key button click
+        document.getElementById('copyKeyBtn').addEventListener('click', function() {
+            copyKeyToClipboard();
+        });
     </script>
 </body>
 </html>
